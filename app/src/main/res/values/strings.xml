@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Popular Movies</string>
+    <string name="most_popular">Most Popular</string>
+    <string name="top_rated">Top Rated</string>
+    <string name="movie_rate">Rating</string>
+    <string name="movie_release_date">Release Date</string>
+    <string name="textview">TextView</string>
+    <string name="movie_details">Movie Details</string>
+    <string name="reviews">Reviews</string>
+    <string name ="BASIC_API_URL">http://api.themoviedb.org/3/movie/</string>
+    <string name ="API_KEY">e7f270eacb1f59d05e70d319d0af3f96</string>
+</resources>
