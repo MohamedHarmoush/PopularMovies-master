@@ -40,7 +40,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
 
 
     final static String BASIC_API_URL = "http://api.themoviedb.org/3/movie/";
-    final static String API_KEY ="e7f270eacb1f59d05e70d319d0af3f96";
+    final static String API_KEY ="";
 
     private Button favouriteButton;
     private SQLiteDatabase mDb;
