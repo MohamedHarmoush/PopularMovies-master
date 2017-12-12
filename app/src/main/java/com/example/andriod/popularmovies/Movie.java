@@ -19,9 +19,6 @@ public class Movie implements Parcelable {
     private ArrayList<Review> movieReviews;
     private String movieId;
 
-    public Movie() {
-    }
-
     public Movie(String movieTitle, String movieReleaseDate, String movieRate, String movieOverview, String moviePosterImage,String movieId) {
         this.movieTitle = movieTitle;
         this.movieReleaseDate = movieReleaseDate;

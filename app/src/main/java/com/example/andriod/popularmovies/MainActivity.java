@@ -4,6 +4,8 @@ package com.example.andriod.popularmovies;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,6 +17,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 
 import com.google.gson.JsonArray;
@@ -31,7 +34,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.ListItemClickListener {
 
     final static String BASIC_API_URL = "http://api.themoviedb.org/3/movie/";
-    final static String API_KEY ="";
+    final static String API_KEY ="e7f270eacb1f59d05e70d319d0af3f96";
 
     private RecyclerView mMoviesRecyclerView;
     private MoviesAdapter adapter;
@@ -58,26 +61,39 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         mMoviesRecyclerView.setLayoutManager(mgridLayoutManager);
         mMoviesRecyclerView.setAdapter(adapter);
         mLoadingProgressBar =(ProgressBar)findViewById(R.id.pb_loading_indiactor);
-       /* if((savedInstanceState != null)&&(savedInstanceState.getParcelable("movies"))!= null) {
-            movies  = savedInstanceState.getParcelable("movies");
+      // if((savedInstanceState != null)&&(savedInstanceState.getParcelableArray("movies")!= null)) {
+        if(savedInstanceState != null){
+            movies  = savedInstanceState.getParcelableArrayList("movies");
+            adapter = new MoviesAdapter(movies,this);
+            mMoviesRecyclerView.setAdapter(adapter);
         }else {
-            mSortType ="popular";
-            fetchDataFromInternet(mSortType);
-        }*/
-        mSortType ="popular";
-        fetchDataFromInternet(mSortType);
-    }
+           if(isNetworkAvailable()){
+               mSortType ="popular";
+               fetchDataFromInternet(mSortType);
+           }else {
+               //getMoviesFromDB();
+               Toast.makeText(this,"No Internet Connection!!",Toast.LENGTH_SHORT).show();
+           }
 
-   /* @Override
+        }
+    }
+    private void getMoviesFromDB() {
+    }
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList("movies", movies);
         super.onSaveInstanceState(outState);
-        outState.putParcelable("movies", (Parcelable) movies);
     }
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        movies  = (ArrayList<Movie>) savedInstanceState.getParcelable("movies");
-    }*/
+        movies  = savedInstanceState.getParcelableArrayList("movies");
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -96,6 +112,9 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
             case R.id.action_sort_by_top_rated:
                 mSortType = "top_rated";
                 break;
+            case R.id.action_sort_by_favorite:
+                mSortType = "favourites";
+
         }
         fetchDataFromInternet(mSortType);
         return true;
@@ -145,6 +164,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         Movie movie = movies.get(clikedItemIndex);
         Intent intent = new Intent(this, MovieDetailsActivity.class);
         intent.putExtra("movie", movie);
+        intent.putExtra("mSortType",mSortType);
         this.startActivity(intent);
     }
 }

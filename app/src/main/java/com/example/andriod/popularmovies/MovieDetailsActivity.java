@@ -59,7 +59,43 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_details);
-        mMovie = getIntent().getParcelableExtra("movie");
+
+        trailerRecyclerView = (RecyclerView)findViewById(R.id.rv_movie_trailers);
+        layoutManager = new GridLayoutManager(this,1,GridLayoutManager.VERTICAL, false);
+
+        mNoReview = (TextView) findViewById(R.id.tv_no_review_avaliable);
+
+        reviewRecyclerView = (RecyclerView)findViewById(R.id.rv_movie_reviews);
+        layoutManager2 = new GridLayoutManager(this,1, GridLayoutManager.VERTICAL, false);
+
+
+        //-------------------
+        if((savedInstanceState != null)){
+            mMovietrailers = savedInstanceState.getStringArrayList("Trailers");
+            adapter = new TrailerAdapter(mMovietrailers,this);
+
+            mMovieReviews = savedInstanceState.getParcelableArrayList("Reviews");
+            adapter2 = new ReviewAdaptor(mMovieReviews);
+
+            mMovie = savedInstanceState.getParcelable("movie");
+
+
+        }else{
+            mMovie = getIntent().getParcelableExtra("movie");
+            mMovietrailers = new ArrayList<>();
+            adapter = new TrailerAdapter(mMovietrailers,this);
+
+            mMovieReviews = new ArrayList<>();
+            adapter2 = new ReviewAdaptor(mMovieReviews);
+
+            fetchTrailers(mMovie.getMovieId());
+            fetchReviews(mMovie.getMovieId());
+        }
+
+        //---------------------
+        reviewRecyclerView.setAdapter(adapter);
+        reviewRecyclerView.setAdapter(adapter2);
+
         mMovieTitle = (TextView)findViewById(R.id.tv_movie_title);
         mMovieTitle.setText(mMovie.getMovieTitle());
         mMovieRate = (TextView)findViewById(R.id.tv_movie_rate);
@@ -75,36 +111,25 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
         Picasso.with(MovieDetailsActivity.this).load(mMovie.getMoviePosterImage()).into(mMoviePoster);
 
 
-        trailerRecyclerView = (RecyclerView)findViewById(R.id.rv_movie_trailers);
-        mMovietrailers = new ArrayList<>();
-        adapter = new TrailerAdapter(mMovietrailers,this);
-        layoutManager = new GridLayoutManager(this,1,GridLayoutManager.VERTICAL, false);
-        trailerRecyclerView.setAdapter(adapter);
-        mNoReview = (TextView) findViewById(R.id.tv_no_review_avaliable);
-        fetchTrailers(mMovie.getMovieId());
-
-        reviewRecyclerView = (RecyclerView)findViewById(R.id.rv_movie_reviews);
-        mMovieReviews = new ArrayList<>();
-        adapter2 = new ReviewAdaptor(mMovieReviews);
-        layoutManager2 = new GridLayoutManager(this,1, GridLayoutManager.VERTICAL, false);
-        reviewRecyclerView.setAdapter(adapter2);
-        fetchReviews(mMovie.getMovieId());
-
     }
 
-  /*  @Override
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
+        outState.putStringArrayList("Trailers",  mMovietrailers);
+        outState.putParcelableArrayList("Reviews",mMovieReviews);
+        outState.putParcelable("movie",mMovie);
+
         super.onSaveInstanceState(outState);
-        outState.putParcelable("Trailers", (Parcelable) mMovietrailers);
-        outState.putSerializable("Reviews",mMovieReviews);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        //mMovietrailers = savedInstanceState.getSerializable("Trailers");
-        //mMovieReviews = savedInstanceState.getSerializable("")
-    }*/
+        mMovietrailers = savedInstanceState.getStringArrayList("Trailers");
+        mMovieReviews = savedInstanceState.getParcelableArrayList("Reviews");
+        mMovie = savedInstanceState.getParcelable("movie");
+
+    }
 
     private TrailerAdapter.ListItemClickListener setListner(){
         return  this;
@@ -130,7 +155,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
                             TrailerAdapter.ListItemClickListener listner = setListner();
                             adapter = new TrailerAdapter(mMovietrailers,listner);
                                 //adapter.notifyDataSetChanged();
-                                trailerRecyclerView.setAdapter(adapter);
+                            trailerRecyclerView.setAdapter(adapter);
 
 
                         }
