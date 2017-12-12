@@ -3,6 +3,9 @@ package com.example.andriod.popularmovies;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Parcelable;
@@ -40,6 +43,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
     final static String API_KEY ="e7f270eacb1f59d05e70d319d0af3f96";
 
     private Button favouriteButton;
+    private SQLiteDatabase mDb;
 
     private Movie mMovie;
     private TextView mMovieTitle;
@@ -96,7 +100,13 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
             fetchReviews(mMovie.getMovieId());
         }
 
-        //---------------------
+        //--------------------------------------------------------
+        ///DataBase
+        MovieAppHelper dbAppHelper = new MovieAppHelper(this);
+        mDb = dbAppHelper.getWritableDatabase();
+
+
+        //---------------------------------------------------------
         reviewRecyclerView.setAdapter(adapter);
         reviewRecyclerView.setAdapter(adapter2);
 
@@ -115,13 +125,34 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
         Picasso.with(MovieDetailsActivity.this).load(mMovie.getMoviePosterImage()).into(mMoviePoster);
 
         //--------------------------------------------------------
+        final Cursor cursor = mDb.rawQuery("Select * from FavoriteMovies ",null);
+        boolean inDB = false;
+        if(cursor != null ) {
+            String MovieTitle="movie";
+            for(int i =0;i<cursor.getCount();i++){
+                int idx = cursor.getColumnIndex("MovieTitle");
+                if (cursor.moveToNext())
+                    MovieTitle = cursor.getString(idx);
+                if(MovieTitle.equals(mMovie.getMovieTitle())){
+                    inDB = true;
+                    break;
+                }
+            }
+            if (inDB)
+                favouriteButton.setText("MARK AS UNFAVOURITE");
+
+        }
+
         favouriteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String s = favouriteButton.getText().toString();
                 if(s.equals("MARK AS FAVOURITE")) {
-                    addDataBase();
-                    favouriteButton.setText("MARK AS UNFAVOURITE");
+                        long row_ID = addDataBase();
+                        if (row_ID > 0)
+                            favouriteButton.setText("MARK AS UNFAVOURITE");
+                        else
+                            throw new SQLException("Failed to insert new Movie ");
                 }
                 else {
                     deleteDataBase();
@@ -131,7 +162,6 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
         });
 
     }
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putStringArrayList("Trailers",  mMovietrailers);
@@ -217,14 +247,14 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
     }
 
 
-    public void addDataBase() {
+    public long addDataBase() {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(MovieContract.MovieTable.favorite.movieId, mMovie.getMovieId());
-        contentValues.put(MovieContract.MovieTable.favorite.moviePosterImage, mMovie.getMoviePosterImage());
-        contentValues.put(MovieContract.MovieTable.favorite.movieTitle, mMovie.getMovieTitle());
-        contentValues.put(MovieContract.MovieTable.favorite.movieOverview, mMovie.getMovieOverview());
-        contentValues.put(MovieContract.MovieTable.favorite.movieRate, mMovie.getMovieRate());
-        contentValues.put(MovieContract.MovieTable.favorite.movieReleaseDate, mMovie.getMovieReleaseDate());
+        contentValues.put(Contract.MovieTable.COULUMN_MOVIE_ID, mMovie.getMovieId());
+        contentValues.put(Contract.MovieTable.COULUMN_MOVIE_POSTERIMAGE, mMovie.getMoviePosterImage());
+        contentValues.put(Contract.MovieTable.COULUMN_MOVIE_TITLE, mMovie.getMovieTitle());
+        contentValues.put(Contract.MovieTable.COULUMN_MOVIE_OVERVIEW, mMovie.getMovieOverview());
+        contentValues.put(Contract.MovieTable.COULUMN_MOVIE_RATE, mMovie.getMovieRate());
+        contentValues.put(Contract.MovieTable.COULUMN_MOVIE_RELEASEDATE, mMovie.getMovieReleaseDate());
         String reviews ="text" ;
         if(mMovie.movieReviews != null) {
             for (Movie.Review r : mMovie.movieReviews)
@@ -235,7 +265,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
                 reviews += "&";
             }
         }
-        contentValues.put(MovieContract.MovieTable.favorite.movieReviews_,reviews );
+        contentValues.put(Contract.MovieTable.COULUMN_MOVIE_REVIEWS,reviews );
         String trailers ="text" ;
         if(mMovie.movieTrailers != null){
             for (String t : mMovie.movieTrailers)
@@ -243,10 +273,11 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
                 trailers +=t + ",";
             }
         }
-        contentValues.put(MovieContract.MovieTable.favorite.movieTrailers_,trailers);
-        Uri uri = getApplication().getContentResolver().insert(MovieContract.MovieTable.CONTENT_URI, contentValues);
+        contentValues.put(Contract.MovieTable.COULUMN_MOVIE_TRAILERS,trailers);
+        return mDb.insertWithOnConflict(Contract.MovieTable.TABLE_NAME,null,contentValues,SQLiteDatabase.CONFLICT_REPLACE);
     }
+
     public void deleteDataBase() {
-        getApplication().getContentResolver().delete(MovieContract.MovieTable.CONTENT_URI, mMovie.getMovieId(), null);
+        mDb.delete(Contract.MovieTable.TABLE_NAME, mMovie.getMovieId(), null);
     }
 }

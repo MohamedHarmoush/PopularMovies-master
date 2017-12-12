@@ -5,15 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -38,6 +37,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
 
     final static String BASIC_API_URL = "http://api.themoviedb.org/3/movie/";
     final static String API_KEY ="e7f270eacb1f59d05e70d319d0af3f96";
+
+    private SQLiteDatabase mDb;
 
     private RecyclerView mMoviesRecyclerView;
     private MoviesAdapter adapter;
@@ -64,6 +65,10 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         mMoviesRecyclerView.setLayoutManager(mgridLayoutManager);
         mMoviesRecyclerView.setAdapter(adapter);
         mLoadingProgressBar =(ProgressBar)findViewById(R.id.pb_loading_indiactor);
+        //////////////////////////////////////
+        MovieAppHelper dbAppHelper = new MovieAppHelper(this);
+        mDb = dbAppHelper.getWritableDatabase();
+        //////////////////////////////////////////////
         if(savedInstanceState != null){
             movies  = savedInstanceState.getParcelableArrayList("movies");
             adapter = new MoviesAdapter(movies,this);
@@ -125,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
     }
 //----------------------------------------------------------------------------------------------------
     private void getMoviesFromDB(){
-        Cursor cursor = getApplicationContext().getContentResolver().query(MovieContract.MovieTable.CONTENT_URI, null, null, null, null);
+        Cursor cursor = mDb.query(Contract.MovieTable.TABLE_NAME, null, null, null, null,null,Contract.MovieTable.COULUMN_MOVIE_ID);
         mMoviesRecyclerView.setItemAnimator(new DefaultItemAnimator());
         movies = getMovies(cursor);
         adapter = new MoviesAdapter(movies,this);
@@ -137,22 +142,23 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         ArrayList<Movie> favouriteMovies = new ArrayList<>();
         if (cursor == null)
             return favouriteMovies;
-        cursor.moveToFirst();
+       // cursor.moveToFirst();
         while (cursor.moveToNext()) {
             Movie movie = new Movie();
-            movie.movieId = cursor.getString(cursor.getColumnIndex("movieId"));
-            movie.movieRate = cursor.getString(cursor.getColumnIndex("movieRate"));
-            movie.movieOverview = cursor.getString(cursor.getColumnIndex("movieOverview"));
-            movie.movieReleaseDate = cursor.getString(cursor.getColumnIndex("movieReleaseDate"));
-            movie.movieTitle = cursor.getString(cursor.getColumnIndex("movieTitle"));
-            movie.moviePosterImage = cursor.getString(cursor.getColumnIndex("moviePosterImage"));
-            String trailers = cursor.getString(cursor.getColumnIndex("movieTrailers"));
+           // movie.movieId = Integer.toString(cursor.getInt(cursor.getColumnIndex("MovieId")));
+            movie.movieId = Integer.toString(cursor.getInt(1));
+            movie.movieRate = cursor.getString(cursor.getColumnIndex("MovieRate"));
+            movie.movieOverview = cursor.getString(cursor.getColumnIndex("MovieOverview"));
+            movie.movieReleaseDate = cursor.getString(cursor.getColumnIndex("MovieReleaseDate"));
+            movie.movieTitle = cursor.getString(cursor.getColumnIndex("MovieTitle"));
+            movie.moviePosterImage = cursor.getString(cursor.getColumnIndex("MoviePosterImage"));
+            String trailers = cursor.getString(cursor.getColumnIndex("MovieTrailers"));
             if(trailers!=null && trailers ==""){
                 String [] movieTrailers = trailers.split(","); //split between them by ,
                 for(int i =0;i<movieTrailers.length;i++)
                     movie.movieTrailers.add(movieTrailers[i]);
             }
-            String reviews = cursor.getString(cursor.getColumnIndex("movieReviews"));
+            String reviews = cursor.getString(cursor.getColumnIndex("MovieReviews"));
             if(reviews!=null && reviews =="") {
                 String[] movieReviews = trailers.split("&");
                 for (int i = 0; i < movieReviews.length; i++) {
@@ -163,10 +169,20 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
                     movie.movieReviews.add(review);
                 }
             }
-
+            favouriteMovies.add(movie);
         }
         return favouriteMovies;
     }
+    /*
+    private  Cursor getMoviesFromDB(){
+        return mDb.query(Contract.MovieTable.TABLE_NAME,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Contract.MovieTable.COULUMN_MOVIE_ID);
+    }*/
     //--------------------------------------------------------------------------------------------------------------
     private void fetchDataFromInternet(String sortType)
     {
