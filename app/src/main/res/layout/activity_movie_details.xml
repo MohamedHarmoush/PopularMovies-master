@@ -16,6 +16,14 @@
         android:layout_height="80dp"
         android:id="@+id/tv_movie_title"
         android:gravity="center"/>
+
+    <Button
+        android:id="@+id/bt_favourite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:text="MARK AS FAVOURITE" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

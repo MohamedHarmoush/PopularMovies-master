@@ -10,15 +10,18 @@ import java.util.ArrayList;
  */
 
 public class Movie implements Parcelable {
-    private String movieTitle;
-    private String movieReleaseDate;
-    private String movieRate;
-    private String movieOverview ;
-    private String moviePosterImage;
-    private ArrayList<String> movieTrailers;
-    private ArrayList<Review> movieReviews;
-    private String movieId;
+    public String movieTitle ="movieTitle";
+    public String movieReleaseDate = "movieReleaseDate";
+    public String movieRate = "movieRate";
+    public String movieOverview = "movieOverview" ;
+    public String moviePosterImage = "moviePosterImage";
+    public String movieTrailers_ = "movieTrailers";
+    public String movieReviews_ = "movieReviews";
+    public ArrayList<String> movieTrailers ;
+    public ArrayList<Review> movieReviews ;
+    public String movieId = "movieId";
 
+    public Movie(){}
     public Movie(String movieTitle, String movieReleaseDate, String movieRate, String movieOverview, String moviePosterImage,String movieId) {
         this.movieTitle = movieTitle;
         this.movieReleaseDate = movieReleaseDate;
@@ -30,9 +33,10 @@ public class Movie implements Parcelable {
 
     }
     public static class Review implements Parcelable {
-        private String reviewAuthor;
-        private String reviewContent;
+        public String reviewAuthor;
+        public String reviewContent;
 
+        public Review(){}
         public Review(String reviewAuthor, String reviewContent) {
             this.reviewAuthor = reviewAuthor;
             this.reviewContent = reviewContent;

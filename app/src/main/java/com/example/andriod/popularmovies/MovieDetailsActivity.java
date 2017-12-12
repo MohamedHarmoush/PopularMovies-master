@@ -1,5 +1,6 @@
 package com.example.andriod.popularmovies;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -13,6 +14,7 @@ import android.support.v7.widget.RecyclerView;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -28,6 +30,7 @@ import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
+import static java.security.AccessController.getContext;
 
 
 public class MovieDetailsActivity extends AppCompatActivity implements TrailerAdapter.ListItemClickListener{
@@ -36,7 +39,8 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
     final static String BASIC_API_URL = "http://api.themoviedb.org/3/movie/";
     final static String API_KEY ="e7f270eacb1f59d05e70d319d0af3f96";
 
-    ///gs sg
+    private Button favouriteButton;
+
     private Movie mMovie;
     private TextView mMovieTitle;
     private TextView mMovieRate;
@@ -68,7 +72,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
         reviewRecyclerView = (RecyclerView)findViewById(R.id.rv_movie_reviews);
         layoutManager2 = new GridLayoutManager(this,1, GridLayoutManager.VERTICAL, false);
 
-
+        favouriteButton = (Button)findViewById(R.id.bt_favourite);
         //-------------------
         if((savedInstanceState != null)){
             mMovietrailers = savedInstanceState.getStringArrayList("Trailers");
@@ -110,6 +114,21 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
         rb_rating.setRating(Float.parseFloat(mMovie.getMovieRate())/2);
         Picasso.with(MovieDetailsActivity.this).load(mMovie.getMoviePosterImage()).into(mMoviePoster);
 
+        //--------------------------------------------------------
+        favouriteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String s = favouriteButton.getText().toString();
+                if(s.equals("MARK AS FAVOURITE")) {
+                    addDataBase();
+                    favouriteButton.setText("MARK AS UNFAVOURITE");
+                }
+                else {
+                    deleteDataBase();
+                    favouriteButton.setText("MARK AS FAVOURITE");
+                }
+            }
+        });
 
     }
 
@@ -195,5 +214,39 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
         Uri uri = Uri.parse("https://www.youtube.com/watch?v="+trailerKey);
         Intent intent = new Intent(Intent.ACTION_VIEW,uri);
         startActivity(intent);
+    }
+
+
+    public void addDataBase() {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MovieContract.MovieTable.favorite.movieId, mMovie.getMovieId());
+        contentValues.put(MovieContract.MovieTable.favorite.moviePosterImage, mMovie.getMoviePosterImage());
+        contentValues.put(MovieContract.MovieTable.favorite.movieTitle, mMovie.getMovieTitle());
+        contentValues.put(MovieContract.MovieTable.favorite.movieOverview, mMovie.getMovieOverview());
+        contentValues.put(MovieContract.MovieTable.favorite.movieRate, mMovie.getMovieRate());
+        contentValues.put(MovieContract.MovieTable.favorite.movieReleaseDate, mMovie.getMovieReleaseDate());
+        String reviews ="text" ;
+        if(mMovie.movieReviews != null) {
+            for (Movie.Review r : mMovie.movieReviews)
+            {
+                String author = r.reviewAuthor;
+                String content = r.reviewContent;
+                reviews = author+","+content;
+                reviews += "&";
+            }
+        }
+        contentValues.put(MovieContract.MovieTable.favorite.movieReviews_,reviews );
+        String trailers ="text" ;
+        if(mMovie.movieTrailers != null){
+            for (String t : mMovie.movieTrailers)
+            {
+                trailers +=t + ",";
+            }
+        }
+        contentValues.put(MovieContract.MovieTable.favorite.movieTrailers_,trailers);
+        Uri uri = getApplication().getContentResolver().insert(MovieContract.MovieTable.CONTENT_URI, contentValues);
+    }
+    public void deleteDataBase() {
+        getApplication().getContentResolver().delete(MovieContract.MovieTable.CONTENT_URI, mMovie.getMovieId(), null);
     }
 }

@@ -4,11 +4,13 @@ package com.example.andriod.popularmovies;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -28,6 +30,7 @@ import com.koushikdutta.ion.Ion;
 
 import java.util.ArrayList;
 
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -61,7 +64,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         mMoviesRecyclerView.setLayoutManager(mgridLayoutManager);
         mMoviesRecyclerView.setAdapter(adapter);
         mLoadingProgressBar =(ProgressBar)findViewById(R.id.pb_loading_indiactor);
-      // if((savedInstanceState != null)&&(savedInstanceState.getParcelableArray("movies")!= null)) {
         if(savedInstanceState != null){
             movies  = savedInstanceState.getParcelableArrayList("movies");
             adapter = new MoviesAdapter(movies,this);
@@ -71,13 +73,11 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
                mSortType ="popular";
                fetchDataFromInternet(mSortType);
            }else {
-               //getMoviesFromDB();
+               getMoviesFromDB();
                Toast.makeText(this,"No Internet Connection!!",Toast.LENGTH_SHORT).show();
            }
 
         }
-    }
-    private void getMoviesFromDB() {
     }
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -114,12 +114,60 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
                 break;
             case R.id.action_sort_by_favorite:
                 mSortType = "favourites";
+                break;
 
         }
-        fetchDataFromInternet(mSortType);
+        if( mSortType != "favourites")
+            fetchDataFromInternet(mSortType);
+        else
+            getMoviesFromDB();
         return true;
     }
+//----------------------------------------------------------------------------------------------------
+    private void getMoviesFromDB(){
+        Cursor cursor = getApplicationContext().getContentResolver().query(MovieContract.MovieTable.CONTENT_URI, null, null, null, null);
+        mMoviesRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        movies = getMovies(cursor);
+        adapter = new MoviesAdapter(movies,this);
+        mMoviesRecyclerView.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
+    }
 
+    public ArrayList<Movie> getMovies(Cursor cursor) {
+        ArrayList<Movie> favouriteMovies = new ArrayList<>();
+        if (cursor == null)
+            return favouriteMovies;
+        cursor.moveToFirst();
+        while (cursor.moveToNext()) {
+            Movie movie = new Movie();
+            movie.movieId = cursor.getString(cursor.getColumnIndex("movieId"));
+            movie.movieRate = cursor.getString(cursor.getColumnIndex("movieRate"));
+            movie.movieOverview = cursor.getString(cursor.getColumnIndex("movieOverview"));
+            movie.movieReleaseDate = cursor.getString(cursor.getColumnIndex("movieReleaseDate"));
+            movie.movieTitle = cursor.getString(cursor.getColumnIndex("movieTitle"));
+            movie.moviePosterImage = cursor.getString(cursor.getColumnIndex("moviePosterImage"));
+            String trailers = cursor.getString(cursor.getColumnIndex("movieTrailers"));
+            if(trailers!=null && trailers ==""){
+                String [] movieTrailers = trailers.split(","); //split between them by ,
+                for(int i =0;i<movieTrailers.length;i++)
+                    movie.movieTrailers.add(movieTrailers[i]);
+            }
+            String reviews = cursor.getString(cursor.getColumnIndex("movieReviews"));
+            if(reviews!=null && reviews =="") {
+                String[] movieReviews = trailers.split("&");
+                for (int i = 0; i < movieReviews.length; i++) {
+                    String[] e = movieReviews[i].split(",");
+                    Movie.Review review = new Movie.Review();
+                    review.reviewAuthor = e[0];
+                    review.reviewContent = e[1];
+                    movie.movieReviews.add(review);
+                }
+            }
+
+        }
+        return favouriteMovies;
+    }
+    //--------------------------------------------------------------------------------------------------------------
     private void fetchDataFromInternet(String sortType)
     {
 
