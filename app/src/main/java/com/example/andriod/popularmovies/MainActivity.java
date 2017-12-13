@@ -36,7 +36,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.ListItemClickListener {
 
     final static String BASIC_API_URL = "http://api.themoviedb.org/3/movie/";
-    final static String API_KEY ="";
+    final static String API_KEY ="e7f270eacb1f59d05e70d319d0af3f96";
 
     private SQLiteDatabase mDb;
 
