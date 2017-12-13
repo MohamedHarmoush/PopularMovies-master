@@ -8,8 +8,16 @@ import android.provider.BaseColumns;
  */
 
 public class Contract {
+
+    public static final String CONTENT_AUTHORITY = "com.example.andriod.popularmovies";  // Authority
+    public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
+    public static final String PATH_MOVIES ="FavoriteMovies";
     public static final class MovieTable implements BaseColumns
     {
+
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_MOVIES).build();
+        public static final Uri URI_FOR_SPECIFIC_ROW = CONTENT_URI.buildUpon().appendPath("id").build();
+
         public static final String TABLE_NAME = "FavoriteMovies" ;
 
         public static final String COULUMN_MOVIE_ID ="MovieID";

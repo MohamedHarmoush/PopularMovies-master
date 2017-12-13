@@ -15,18 +15,6 @@ public class MovieAppHelper  extends SQLiteOpenHelper {
     private static final int DB_Version = 1;
     private static final String ColumnType =" TEXT";
     private static final String LOG_TAG = MovieAppHelper.class.getName();
-  /*  private static final String SQL_CREATE_DATABASE = "CREATE TABLE MovieDB (\n" +
-            "    Id               INTEGER    PRIMARY KEY ASC,\n" +
-            "    movieId          TEXT (20)," +
-            "    movieTitle       TEXT (50)," +
-            "    movieReleaseDate TEXT (20)," +
-            "    movieRate        TEXT (20)," +
-            "    movieOverview    TEXT (500)," +
-            "    moviePosterImage TEXT (50)," +
-            "    movieReviews     TEXT (500)," +
-            "    movieTrailers    TEXT (300) " +
-            ");\n" +
-            "CREATE TABLE "+ "FavoriteMovies"+ " ( "+ " ); ";*/
 
     private static final String SQL_DELETE_DATABASE = "DROP TABLE IF EXIST " + Contract.MovieTable.TABLE_NAME ;
 
