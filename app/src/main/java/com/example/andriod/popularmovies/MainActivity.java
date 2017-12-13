@@ -173,17 +173,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         }
         return favouriteMovies;
     }
-    /*
-    private  Cursor getMoviesFromDB(){
-        return mDb.query(Contract.MovieTable.TABLE_NAME,
-                null,
-                null,
-                null,
-                null,
-                null,
-                Contract.MovieTable.COULUMN_MOVIE_ID);
-    }*/
-    //--------------------------------------------------------------------------------------------------------------
     private void fetchDataFromInternet(String sortType)
     {
 

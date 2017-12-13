@@ -148,12 +148,10 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
             public void onClick(View v) {
                 String s = favouriteButton.getText().toString();
                 if(s.equals("MARK AS FAVOURITE")) {
-                        long row_ID = addDataBase();
-                        if (row_ID > 0)
+                    addDataBase();
                             favouriteButton.setText("MARK AS UNFAVOURITE");
-                        else
-                            throw new SQLException("Failed to insert new Movie ");
                 }
+
                 else {
                     deleteDataBase();
                     favouriteButton.setText("MARK AS FAVOURITE");
@@ -247,7 +245,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
     }
 
 
-    public long addDataBase() {
+    public void addDataBase() {
         ContentValues contentValues = new ContentValues();
         contentValues.put(Contract.MovieTable.COULUMN_MOVIE_ID, mMovie.getMovieId());
         contentValues.put(Contract.MovieTable.COULUMN_MOVIE_POSTERIMAGE, mMovie.getMoviePosterImage());
@@ -274,10 +272,10 @@ public class MovieDetailsActivity extends AppCompatActivity implements TrailerAd
             }
         }
         contentValues.put(Contract.MovieTable.COULUMN_MOVIE_TRAILERS,trailers);
-        return mDb.insertWithOnConflict(Contract.MovieTable.TABLE_NAME,null,contentValues,SQLiteDatabase.CONFLICT_REPLACE);
+        Uri uri = this.getContentResolver().insert(Contract.MovieTable.CONTENT_URI, contentValues);
     }
 
     public void deleteDataBase() {
-        mDb.delete(Contract.MovieTable.TABLE_NAME, mMovie.getMovieId(), null);
+        this.getContentResolver().delete(Contract.MovieTable.CONTENT_URI, mMovie.getMovieId(), null);
     }
 }

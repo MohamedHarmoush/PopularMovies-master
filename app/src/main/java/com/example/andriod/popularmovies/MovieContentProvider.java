@@ -82,30 +82,23 @@ public class MovieContentProvider extends ContentProvider{
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
         database = movieAppHelper.getWritableDatabase();
-        long row_ID = database.insert(Contract.MovieTable.TABLE_NAME, null, values);
-        if (row_ID > 0) {
-            Uri uri_id = ContentUris.withAppendedId(Contract.MovieTable.URI_FOR_SPECIFIC_ROW, row_ID);
-            getContext().getContentResolver().notifyChange(uri_id, null);
-            return uri_id;
+        Uri returnUri;
+        long newRowID = database.insert(Contract.MovieTable.TABLE_NAME, null, values);
+        if (newRowID > 0) {
+            returnUri = ContentUris.withAppendedId(Contract.MovieTable.URI_FOR_SPECIFIC_ROW, newRowID);
+            getContext().getContentResolver().notifyChange(returnUri, null);
+            return returnUri;
         }
         throw new SQLException("Failed to insert new Movie ");
+
     }
 
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
         database = movieAppHelper.getWritableDatabase();
-        int c = 0;
+        int count = database.delete(Contract.MovieTable.TABLE_NAME, "MovieID = "+ selection, selectionArgs);
 
-        switch (uriMatcher.match(uri)) {
-            case 10: {
-                c = database.delete(Contract.MovieTable.TABLE_NAME, "id=" + selection, selectionArgs);
-                break;
-            }
-            default:
-                throw new UnsupportedOperationException("Unknown uri: " + uri);
-        }
-        getContext().getContentResolver().notifyChange(uri, null);
-        return c;
+        return count;
     }
 
     @Override
