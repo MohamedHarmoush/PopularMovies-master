@@ -4,15 +4,18 @@ package com.example.andriod.popularmovies;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -42,17 +45,14 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
 
     private RecyclerView mMoviesRecyclerView;
     private MoviesAdapter adapter;
-    private RecyclerView.ViewHolder holder;
     private GridLayoutManager mgridLayoutManager;
-    private int numberOfViews = 2;
+    private int numberOfViews ;
     private ProgressBar mLoadingProgressBar;
     private ArrayList<Movie> movies;
-    private Menu menu;
+
     private String mSortType;
 
-    String filmCategory;
-    SharedPreferences prefs;
-    SharedPreferences.Editor editor;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         mMoviesRecyclerView = (RecyclerView)findViewById(R.id.rv_movies);
         movies = new ArrayList<>();
         adapter = new MoviesAdapter(movies,this);
+        numberOfViews = calculateNoOfColumns(this);
         mgridLayoutManager = new GridLayoutManager(this,numberOfViews,GridLayoutManager.VERTICAL,false);
         mMoviesRecyclerView.setLayoutManager(mgridLayoutManager);
         mMoviesRecyclerView.setAdapter(adapter);
@@ -83,6 +84,13 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
            }
 
         }
+    }
+    public static int calculateNoOfColumns(Context context) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
+        int scalingFactor = 180;
+        int noOfColumns = (int) (dpWidth / scalingFactor);
+        return noOfColumns;
     }
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -130,7 +138,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
     }
 //----------------------------------------------------------------------------------------------------
     private void getMoviesFromDB(){
-        Cursor cursor = mDb.query(Contract.MovieTable.TABLE_NAME, null, null, null, null,null,Contract.MovieTable.COULUMN_MOVIE_ID);
+      //  Cursor cursor = mDb.query(Contract.MovieTable.TABLE_NAME, null, null, null, null,null,Contract.MovieTable.COULUMN_MOVIE_ID);
+        Cursor cursor = this.getContentResolver().query(Contract.MovieTable.CONTENT_URI,null,null,null,null);
         mMoviesRecyclerView.setItemAnimator(new DefaultItemAnimator());
         movies = getMovies(cursor);
         adapter = new MoviesAdapter(movies,this);
